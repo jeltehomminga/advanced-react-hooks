@@ -8,6 +8,8 @@ function useMedia(query, initialState = false) {
   // 🐨 call React.useDebugValue here.
   // 💰 here's the formatted label I use: `\`${query}\` => ${state}`
 
+  const debugFormatValue = ({query, state}) => `\`${query}\` => ${state}`
+  React.useDebugValue({query, state}, debugFormatValue)
   React.useEffect(() => {
     let mounted = true
     const mql = window.matchMedia(query)

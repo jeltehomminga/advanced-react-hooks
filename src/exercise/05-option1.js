@@ -4,9 +4,27 @@
 import * as React from 'react'
 
 // 🐨 wrap this in a React.forwardRef and accept `ref` as the second argument
-function MessagesDisplay({messages, messageDisplayRef}) {
+const MessagesDisplay = React.forwardRef(({messages}, ref) => {
+  const containerRef = React.useRef()
+  const scrollToBottom = () =>
+    (containerRef.current.scrollTop = containerRef.current.scrollHeight)
+
+  React.useLayoutEffect(() => {
+    scrollToBottom()
+  })
+
+  function scrollToTop() {
+    containerRef.current.scrollTop = 0
+  }
+  // 🐨 call useImperativeHandle here with your ref and a callback function
+  // that returns an object with scrollToTop and scrollToBottom
+  React.useImperativeHandle(ref, () => ({
+    scrollToTop,
+    scrollToBottom,
+  }))
+
   return (
-    <div ref={messageDisplayRef} role="log">
+    <div ref={containerRef} role="log">
       {messages.map((message, index, array) => (
         <div key={message.id}>
           <strong>{message.author}</strong>: <span>{message.content}</span>
@@ -15,7 +33,7 @@ function MessagesDisplay({messages, messageDisplayRef}) {
       ))}
     </div>
   )
-}
+})
 
 function App() {
   const messageDisplayRef = React.useRef()
@@ -29,14 +47,8 @@ function App() {
       ? setMessages(allMessages.slice(0, messages.length - 1))
       : null
 
-  const scrollToTop = () => (messageDisplayRef.current.scrollTop = 0)
-  const scrollToBottom = () =>
-    (messageDisplayRef.current.scrollTop =
-      messageDisplayRef.current.scrollHeight)
-
-  React.useLayoutEffect(() => {
-    scrollToBottom()
-  })
+  const scrollToTop = () => messageDisplayRef.current.scrollToTop()
+  const scrollToBottom = () => messageDisplayRef.current.scrollToBottom()
 
   return (
     <div className="messaging-app">
@@ -48,10 +60,7 @@ function App() {
       <div>
         <button onClick={scrollToTop}>scroll to top</button>
       </div>
-      <MessagesDisplay
-        messageDisplayRef={messageDisplayRef}
-        messages={messages}
-      />
+      <MessagesDisplay ref={messageDisplayRef} messages={messages} />
       <div>
         <button onClick={scrollToBottom}>scroll to bottom</button>
       </div>
